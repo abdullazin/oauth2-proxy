@@ -25,6 +25,7 @@ type AzureProvider struct {
 	*ProviderData
 	Tenant          string
 	GraphGroupField string
+	DomainHint      string
 	isV2Endpoint    bool
 }
 
@@ -87,6 +88,11 @@ func NewAzureProvider(p *ProviderData, opts options.AzureOptions) *AzureProvider
 		graphGroupField = opts.GraphGroupField
 	}
 
+	domainHint := ""
+	if opts.DomainHint != "" {
+		domainHint = opts.DomainHint
+	}
+
 	isV2Endpoint := false
 	if strings.Contains(p.LoginURL.String(), "v2.0") {
 		isV2Endpoint = true
@@ -111,6 +117,7 @@ func NewAzureProvider(p *ProviderData, opts options.AzureOptions) *AzureProvider
 		ProviderData:    p,
 		Tenant:          tenant,
 		GraphGroupField: graphGroupField,
+		DomainHint:      domainHint,
 		isV2Endpoint:    isV2Endpoint,
 	}
 }
@@ -145,6 +152,9 @@ func (p *AzureProvider) GetLoginURL(redirectURI, state, _ string, extraParams ur
 	// https://docs.microsoft.com/en-us/azure/active-directory/azuread-dev/azure-ad-endpoint-comparison#scopes-not-resources
 	if p.ProtectedResource != nil && p.ProtectedResource.String() != "" && !p.isV2Endpoint {
 		extraParams.Add("resource", p.ProtectedResource.String())
+	}
+	if p.DomainHint != "" {
+		extraParams.Add("domain_hint", p.DomainHint)
 	}
 	a := makeLoginURL(p.ProviderData, redirectURI, state, extraParams)
 	return a.String()

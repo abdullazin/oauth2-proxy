@@ -153,6 +153,9 @@ type AzureOptions struct {
 	// GraphGroupField configures the group field to be used when building the groups list from Microsoft Graph
 	// Default value is 'id'
 	GraphGroupField string `json:"graphGroupField,omitempty"`
+	// DomainHint query parameter string helps in skipping the selection of the user account during login
+	// Default value is ``
+	DomainHint string `json:"domainHint,omitempty"`
 }
 
 type ADFSOptions struct {

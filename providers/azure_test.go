@@ -141,6 +141,29 @@ func TestAzureSetTenant(t *testing.T) {
 	assert.Equal(t, "openid", p.Data().Scope)
 }
 
+func TestAzureSetTenantWithDomainHint(t *testing.T) {
+	p := testAzureProvider("", options.AzureOptions{Tenant: "example", DomainHint: "example.com"})
+	assert.Equal(t, "Azure", p.Data().ProviderName)
+	assert.Equal(t, "example", p.Tenant)
+	assert.Equal(t, "example.com", p.DomainHint)
+	assert.Equal(t, "https://login.microsoftonline.com/example/oauth2/authorize", p.Data().LoginURL.String())
+	assert.Equal(t, "https://login.microsoftonline.com/example/oauth2/token", p.Data().RedeemURL.String())
+	assert.Equal(t, "https://graph.microsoft.com/v1.0/me", p.Data().ProfileURL.String())
+	assert.Equal(t, "https://graph.microsoft.com/v1.0/me", p.Data().ValidateURL.String())
+	assert.Equal(t, "openid", p.Data().Scope)
+}
+
+func TestAzureProviderWithDomainHint(t *testing.T) {
+	p := testAzureProvider("", options.AzureOptions{})
+	testURL := "http://example.com"
+	p.DomainHint = "example.com"
+	result, _ := url.Parse(p.GetLoginURL("https://my.test.app/oauth", "", "", url.Values{}))
+	parsedQuery, _ := url.ParseQuery(result.RawQuery)
+	assert.NotContains(t, parsedQuery["scope"], " "+testURL)
+	assert.NotContains(t, result.RawQuery, "resource="+url.QueryEscape(testURL))
+	assert.Contains(t, result.RawQuery, "domain_hint=example.com")
+}
+
 func testAzureBackend(payload string, accessToken, refreshToken string) *httptest.Server {
 	return testAzureBackendWithError(payload, accessToken, refreshToken, false)
 }
